@@ -48,6 +48,7 @@ import {
   User,
   ArrowLeft,
   Newspaper,
+  Heading,
 } from "lucide-react";
 import { useNavigate } from "@/lib/router-compat";
 import { motion, AnimatePresence } from "framer-motion";
