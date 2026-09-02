@@ -35,6 +35,7 @@ export function useNavigate() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         search: search as any,
         replace: options?.replace,
+      });
     },
     [navigate],
   );
