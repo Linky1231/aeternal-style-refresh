@@ -1031,6 +1031,51 @@ function FormatToolbar() {
         )}
       </AnimatePresence>
 
+      {/* Text size panel */}
+      <AnimatePresence>
+        {showSizes && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-border/40 bg-muted/50 p-2.5">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Tamaño</span>
+              <div className="flex flex-wrap gap-1.5">
+                {([
+                  { tag: "h1", label: "H1", cls: "text-base font-extrabold" },
+                  { tag: "h2", label: "H2", cls: "text-[15px] font-bold" },
+                  { tag: "h3", label: "H3", cls: "text-sm font-semibold" },
+                  { tag: "p", label: "Normal", cls: "text-xs font-medium" },
+                ] as const).map((s) => (
+                  <button
+                    key={s.tag}
+                    type="button"
+                    className="rounded-lg border border-border/60 bg-card px-2.5 py-1.5 text-card-foreground transition-colors hover:border-primary/40 hover:bg-accent"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      restoreSelection();
+                      // Sin selección previa: enfocar el editor y aplicar al bloque actual
+                      const sel = window.getSelection();
+                      const editor = document.querySelector<HTMLElement>("[contenteditable]");
+                      if ((!sel || sel.rangeCount === 0) && editor) {
+                        editor.focus();
+                      }
+                      document.execCommand("formatBlock", false, s.tag === "p" ? "p" : s.tag);
+                      setShowSizes(false);
+                    }}
+                  >
+                    <span className={s.cls}>{s.label}</span>
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="ml-auto flex h-5 w-5 items-center justify-center rounded text-xs text-muted-foreground hover:text-foreground" onClick={() => setShowSizes(false)}><X className="h-3 w-3" /></button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
