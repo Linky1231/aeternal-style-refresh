@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Code2, Rocket, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router";
+import { useNavigate } from "@/lib/router-compat";
 
 // ── Animation variants ──────────────────────────────────────────────
 // Ease: [0.32, 0.72, 0, 1] — smooth deceleration (design system standard)

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { ArrowLeft, Loader2, UserPlus, LogIn, Eye, EyeOff } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "@/lib/router-compat";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface AuthProps {
