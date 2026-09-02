@@ -863,6 +863,7 @@ function MediaGrid({
 // ── Format Toolbar ─────────────────────────────────────────────────
 function FormatToolbar() {
   const [showColors, setShowColors] = useState(false);
+  const [showSizes, setShowSizes] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedRange = useRef<Range | null>(null);
