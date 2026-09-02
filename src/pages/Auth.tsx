@@ -377,10 +377,10 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                 <p className="text-xs text-muted-foreground">
                   {mode === "login" ? (
                     <>
-                      ¿No tienes cuenta?{" "}
+                      ¿No tienes cuenta?
                       <button
                         onClick={switchMode}
-                        className="font-medium text-primary hover:text-primary/80 transition-colors"
+                        className="ml-1 font-medium text-primary hover:text-primary/80 transition-colors"
                       >
                         Regístrate
                       </button>
