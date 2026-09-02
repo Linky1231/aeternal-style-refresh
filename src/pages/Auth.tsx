@@ -113,9 +113,10 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
         <div className="mx-auto flex h-14 max-w-2xl items-center px-4">
           <button
             onClick={() => navigate("/")}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Volver al inicio"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -218,7 +219,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                               animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.2 }}
-                              className="text-sm text-red-500 text-center"
+                              className="text-center text-sm font-medium text-destructive"
                             >
                               {error}
                             </motion.p>
@@ -339,7 +340,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                               animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.2 }}
-                              className="text-sm text-red-500 text-center"
+                              className="text-center text-sm font-medium text-destructive"
                             >
                               {error}
                             </motion.p>
