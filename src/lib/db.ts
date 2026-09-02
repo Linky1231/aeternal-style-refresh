@@ -154,33 +154,32 @@ export async function registerUser(
 export async function loginUser(username: string, password: string) {
   const cleanUsername = username.trim().toLowerCase();
 
-  // Find user by username
-  const { data: user, error: userError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("username", cleanUsername)
-    .single();
-
-  if (userError || !user) {
-    throw new Error("Usuario no encontrado");
-  }
-
-  // Login with Supabase Auth using the email pattern
+  // Sign in first: reading the users table before having a session can be
+  // blocked by row level security, which made valid logins fail.
   const { data: authData, error: authError } =
     await supabase.auth.signInWithPassword({
       email: `${cleanUsername}@asternal.local`,
       password: password,
     });
 
-  if (authError) throw authError;
+  if (authError) {
+    const message = /invalid login credentials/i.test(authError.message)
+      ? "Usuario o contraseña incorrectos"
+      : authError.message;
+    throw new Error(message);
+  }
+  if (!authData.user) throw new Error("No se pudo iniciar sesión");
+
+  // Now load (or lazily create) the profile with the authenticated session.
+  const profile = await getCurrentUser();
 
   return {
-    _id: user.id,
-    name: user.name || "Anónimo",
-    username: user.username,
-    email: user.email,
-    image: user.image,
-    role: user.role || "user",
+    _id: profile?.id ?? authData.user.id,
+    name: profile?.name || cleanUsername,
+    username: profile?.username || cleanUsername,
+    email: profile?.email ?? authData.user.email,
+    image: profile?.image,
+    role: profile?.role || "user",
   };
 }
 
