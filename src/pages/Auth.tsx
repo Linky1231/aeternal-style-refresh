@@ -387,10 +387,10 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     </>
                   ) : (
                     <>
-                      ¿Ya tienes cuenta?{" "}
+                      ¿Ya tienes cuenta?
                       <button
                         onClick={switchMode}
-                        className="font-medium text-primary hover:text-primary/80 transition-colors"
+                        className="ml-1 font-medium text-primary hover:text-primary/80 transition-colors"
                       >
                         Inicia sesión
                       </button>
