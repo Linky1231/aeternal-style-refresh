@@ -951,6 +951,23 @@ function FormatToolbar() {
           <span className="text-sm font-medium underline leading-none">S</span>
         </Button>
 
+        {/* Text size (H1 / H2 / H3 / Normal) */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className={`gap-1.5 px-3 ${showSizes ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-primary"}`}
+          onClick={() => {
+            if (showSizes) { setShowSizes(false); return; }
+            if (hasSelection()) saveSelection();
+            setShowSizes(true);
+          }}
+          title="Tamaño del texto"
+        >
+          <Heading className="h-4 w-4 shrink-0" />
+          <span className="text-xs font-medium whitespace-nowrap">Tamaño</span>
+        </Button>
+
       </div>
 
       {/* Hint below toolbar */}
