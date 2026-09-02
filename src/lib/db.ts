@@ -87,7 +87,7 @@ export async function registerUser(
     .from("users")
     .select("id")
     .eq("username", cleanUsername)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     throw new Error("Este nombre de usuario ya está en uso");
