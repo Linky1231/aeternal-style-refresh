@@ -19,118 +19,122 @@ interface User {
 
 const AUTH_STORAGE_KEY = "asternal_auth";
 
-// Simple in-memory cache for current user
-let currentUserCache: User | null = null;
-let authStateChecked = false;
+// ─────────────────────────────────────────────────────────────
+// Shared auth store: every useAuth() instance reads the SAME
+// state, so mounting a new component (e.g. RequireAuth on
+// /dashboard) never resets the session to "not authenticated".
+// ─────────────────────────────────────────────────────────────
+
+type AuthState = { user: User | null; loading: boolean };
+
+function readCachedUser(): User | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = window.localStorage.getItem(AUTH_STORAGE_KEY);
+    return cached ? (JSON.parse(cached) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
+let state: AuthState = { user: null, loading: true };
+const listeners = new Set<(s: AuthState) => void>();
+let initialized = false;
+
+function setState(next: Partial<AuthState>) {
+  state = { ...state, ...next };
+  listeners.forEach((l) => l(state));
+}
+
+function setUser(user: User | null) {
+  setState({ user });
+  if (typeof window === "undefined") return;
+  if (user) {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+  }
+}
+
+function toUser(profile: {
+  id: string;
+  name?: string | null;
+  username?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: string | null;
+}): User {
+  return {
+    _id: profile.id,
+    name: profile.name || "Anónimo",
+    username: profile.username ?? undefined,
+    email: profile.email ?? undefined,
+    image: profile.image ?? undefined,
+    role: profile.role ?? undefined,
+    isAuthenticated: true,
+  };
+}
+
+async function syncFromSession() {
+  const profile = await getCurrentUser();
+  if (profile) {
+    setUser(toUser(profile));
+    return true;
+  }
+  return false;
+}
+
+function initialize() {
+  if (initialized || typeof window === "undefined") return;
+  initialized = true;
+
+  // Optimistic hydration from cache so protected routes don't bounce.
+  const cached = readCachedUser();
+  if (cached) setState({ user: cached });
+
+  (async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const ok = await syncFromSession();
+        if (!ok && !cached) setUser(null);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error);
+    } finally {
+      setState({ loading: false });
+    }
+  })();
+
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (
+      (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") &&
+      session?.user
+    ) {
+      await syncFromSession();
+      setState({ loading: false });
+    } else if (event === "SIGNED_OUT") {
+      setUser(null);
+      setState({ loading: false });
+    }
+  });
+}
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  initialize();
+  const [local, setLocal] = useState<AuthState>(state);
 
-  // Check for cached user on mount
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // First check Supabase session
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (session?.user) {
-          // Get full profile from database
-          const profile = await getCurrentUser();
-          if (profile) {
-            const userData: User = {
-              _id: profile.id,
-              name: profile.name || "Anónimo",
-              username: profile.username,
-              email: profile.email,
-              image: profile.image,
-              role: profile.role,
-              isAuthenticated: true,
-            };
-            currentUserCache = userData;
-            setUser(userData);
-            // Cache in localStorage
-            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
-          }
-        } else {
-          // No session, check localStorage cache
-          const cached = localStorage.getItem(AUTH_STORAGE_KEY);
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            // Verify the cached user still exists
-            try {
-              const profile = await getCurrentUser();
-              if (profile && profile.id === parsed._id) {
-                currentUserCache = parsed;
-                setUser(parsed);
-              } else {
-                // Cached user no longer valid
-                localStorage.removeItem(AUTH_STORAGE_KEY);
-                currentUserCache = null;
-                setUser(null);
-              }
-            } catch {
-              // Can't verify, use cache
-              currentUserCache = parsed;
-              setUser(parsed);
-            }
-          } else {
-            currentUserCache = null;
-            setUser(null);
-          }
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        // Use cache on error
-        const cached = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          currentUserCache = parsed;
-          setUser(parsed);
-        }
-      } finally {
-        setLoading(false);
-        authStateChecked = true;
-      }
-    };
-
-    if (!authStateChecked) {
-      checkAuth();
-    } else {
-      setLoading(false);
-    }
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        const profile = await getCurrentUser();
-        if (profile) {
-          const userData: User = {
-            _id: profile.id,
-            name: profile.name || "Anónimo",
-            username: profile.username,
-            email: profile.email,
-            image: profile.image,
-            role: profile.role,
-            isAuthenticated: true,
-          };
-          currentUserCache = userData;
-          setUser(userData);
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
-        }
-      } else if (event === "SIGNED_OUT") {
-        currentUserCache = null;
-        setUser(null);
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-      }
-    });
-
+    const listener = (s: AuthState) => setLocal(s);
+    listeners.add(listener);
+    setLocal(state);
     return () => {
-      subscription.unsubscribe();
+      listeners.delete(listener);
     };
   }, []);
 
@@ -139,30 +143,13 @@ export function useAuth() {
       if (!credentials?.username || !credentials?.password) {
         throw new Error("Se requiere nombre de usuario y contraseña");
       }
-
-      try {
-        const result = await loginUser(
-          credentials.username,
-          credentials.password
-        );
-        const userData: User = {
-          _id: result._id,
-          name: result.name,
-          username: result.username,
-          email: result.email,
-          image: result.image,
-          role: result.role,
-          isAuthenticated: true,
-        };
-        currentUserCache = userData;
-        setUser(userData);
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
-        return userData;
-      } catch (error) {
-        throw error;
-      }
+      const result = await loginUser(credentials.username, credentials.password);
+      const userData: User = { ...result, _id: result._id, isAuthenticated: true };
+      setUser(userData);
+      setState({ loading: false });
+      return userData;
     },
-    []
+    [],
   );
 
   const signUp = useCallback(
@@ -174,28 +161,22 @@ export function useAuth() {
       if (!credentials?.username || !credentials?.password) {
         throw new Error("Se requiere nombre de usuario y contraseña");
       }
-
-      try {
-        const result = await registerUser(
-          credentials.username,
-          credentials.password,
-          credentials.name
-        );
-        const userData: User = {
-          _id: result._id,
-          name: result.name,
-          username: result.username,
-          isAuthenticated: true,
-        };
-        currentUserCache = userData;
-        setUser(userData);
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
-        return userData;
-      } catch (error) {
-        throw error;
-      }
+      const result = await registerUser(
+        credentials.username,
+        credentials.password,
+        credentials.name,
+      );
+      const userData: User = {
+        _id: result._id,
+        name: result.name,
+        username: result.username,
+        isAuthenticated: true,
+      };
+      setUser(userData);
+      setState({ loading: false });
+      return userData;
     },
-    []
+    [],
   );
 
   const signOut = useCallback(async () => {
@@ -204,18 +185,17 @@ export function useAuth() {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      currentUserCache = null;
       setUser(null);
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      setState({ loading: false });
     }
   }, []);
 
   return {
-    user,
-    loading,
+    user: local.user,
+    loading: local.loading,
     signIn,
     signUp,
     signOut,
-    isAuthenticated: user?.isAuthenticated ?? false,
+    isAuthenticated: local.user?.isAuthenticated ?? false,
   };
 }
