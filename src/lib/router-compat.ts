@@ -32,9 +32,9 @@ export function useNavigate() {
       void navigate({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         to: pathname as any,
-        search,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        search: search as any,
         replace: options?.replace,
-      });
     },
     [navigate],
   );
