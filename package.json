@@ -12,7 +12,9 @@
     "format": "prettier --write ."
   },
   "overrides": {
-    "rolldown": "1.2.1"
+    "rolldown": "1.2.1",
+    "motion-dom": "12.23.23",
+    "motion-utils": "12.23.6"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
