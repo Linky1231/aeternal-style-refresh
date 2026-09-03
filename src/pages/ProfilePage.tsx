@@ -436,17 +436,6 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
         </div>
       </motion.div>
 
-      {/* ── Card 3: Sign Out ────────────────────────────────── */}
-      <motion.div {...stagger(2)} className="mt-4">
-        <Button
-          variant="outline"
-          className="w-full gap-2 text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
-          onClick={() => signOut()}
-        >
-          <LogOut className="h-4 w-4" />
-          Cerrar sesión
-        </Button>
-      </motion.div>
 
       {/* ── Section: Mis publicaciones ──────────────────────── */}
       {userPosts && userPosts.length > 0 && (
