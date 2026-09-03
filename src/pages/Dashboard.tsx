@@ -48,7 +48,6 @@ import {
   User,
   ArrowLeft,
   Newspaper,
-  Heading,
 } from "lucide-react";
 import { useNavigate } from "@/lib/router-compat";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1045,10 +1044,10 @@ function FormatToolbar() {
               <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Tamaño</span>
               <div className="flex flex-wrap gap-1.5">
                 {([
-                  { tag: "h1", label: "H1", cls: "text-base font-extrabold" },
-                  { tag: "h2", label: "H2", cls: "text-[15px] font-bold" },
+                  { tag: "h1", label: "H1", cls: "text-base font-semibold" },
+                  { tag: "h2", label: "H2", cls: "text-[15px] font-semibold" },
                   { tag: "h3", label: "H3", cls: "text-sm font-semibold" },
-                  { tag: "p", label: "Normal", cls: "text-xs font-medium" },
+                  { tag: "p", label: "Normal", cls: "text-xs font-normal" },
                 ] as const).map((s) => (
                   <button
                     key={s.tag}
