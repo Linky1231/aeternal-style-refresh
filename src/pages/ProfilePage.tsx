@@ -61,7 +61,7 @@ interface ProfilePageProps {
 }
 
 export default function ProfilePage({ onBack }: ProfilePageProps) {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userPosts, setUserPosts] = useState<any[] | undefined>(undefined);
   
