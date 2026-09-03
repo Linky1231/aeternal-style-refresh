@@ -16,7 +16,7 @@ import {
   ArrowLeft,
   Camera,
   Check,
-  LogOut,
+  
   User,
   MoreHorizontal,
   Pencil,
