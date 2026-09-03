@@ -1132,10 +1132,10 @@ function CommentItem({
 }) {
   const pid = postId as any;
   const toggleCommentLikeHandler = async (commentId: string) => {
-    // Will be passed as prop or use direct Supabase call
+    // Will be passed as prop or use direct Lovable Cloud call
   };
   const removeCommentHandler = async (commentId: string) => {
-    // Will be passed as prop or use direct Supabase call
+    // Will be passed as prop or use direct Lovable Cloud call
   };
   const [confirmDelete, setConfirmDelete] = useState(false);
 

@@ -93,7 +93,7 @@ export async function registerUser(
     throw new Error("Este nombre de usuario ya está en uso");
   }
 
-  // Create auth user with Supabase Auth
+  // Create auth user with Lovable Cloud Auth
   // The database trigger (handle_new_user) auto-creates the user profile
   const displayName = name?.trim() || cleanUsername;
   const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -131,7 +131,7 @@ export async function registerUser(
     });
   }
 
-  // Auto sign-in (Supabase may not auto-sign-in depending on email confirmation settings)
+  // Auto sign-in (Lovable Cloud may not auto-sign-in depending on email confirmation settings)
   // Try to establish a session
   if (!authData.session) {
     const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -191,7 +191,7 @@ export async function logoutUser() {
 }
 
 /**
- * Get current user from Supabase
+ * Get current user from Lovable Cloud
  */
 export async function getCurrentUser() {
   const {
