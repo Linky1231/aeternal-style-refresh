@@ -21,6 +21,14 @@
   --font-sans: "Nunito", ui-rounded, ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
+  /* Pesos suavizados: aire cartoon sin trazos gruesos */
+  --font-weight-normal: 450;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 550;
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 650;
+  --font-weight-black: 700;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -171,13 +179,6 @@
     font-weight: 600;
     letter-spacing: -0.005em;
     line-height: 1.15;
-  }
-
-  /* Jerarquía tipográfica: nunca más grueso de 700 */
-  .font-black,
-  .font-extrabold,
-  .font-bold {
-    font-weight: 600;
   }
 
   strong,
