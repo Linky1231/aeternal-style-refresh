@@ -2549,6 +2549,7 @@ export default function Dashboard() {
       setContent("");
       setPostTitle("");
       if (editorRef.current) editorRef.current.innerHTML = "";
+      await refreshPosts();
     } catch (err) {
       console.error("Error al crear la publicación:", err);
     } finally {
@@ -2558,10 +2559,23 @@ export default function Dashboard() {
   };
 
   const handleToggleLike = async (postId: string) => {
+    // Optimista: el corazón y el contador cambian al instante.
+    setPosts((prev) =>
+      prev.map((p) =>
+        p._id === postId
+          ? {
+              ...p,
+              likedByMe: !p.likedByMe,
+              likes: Math.max(0, (p.likes ?? 0) + (p.likedByMe ? -1 : 1)),
+            }
+          : p,
+      ),
+    );
     try {
       await togglePostLike(user?._id || "", postId);
     } catch (err) {
       console.error("Error al dar me gusta:", err);
+      void refreshPosts();
     }
   };
   const handleToggleFollow = useCallback(async (targetUserId: string) => {
@@ -2574,14 +2588,28 @@ export default function Dashboard() {
   }, [user?._id]);
 
   const handleToggleFavorite = async (postId: string) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p._id === postId
+          ? {
+              ...p,
+              favoritedByMe: !p.favoritedByMe,
+              favorites: Math.max(0, (p.favorites ?? 0) + (p.favoritedByMe ? -1 : 1)),
+            }
+          : p,
+      ),
+    );
     try {
       await togglePostFavorite(user?._id || "", postId);
     } catch (err) {
       console.error("Error al marcar favorito:", err);
+      void refreshPosts();
     }
   };
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
+    const removedId = deleteTarget;
+    setPosts((prev) => prev.filter((p) => p._id !== removedId));
     try {
       if (isAdmin) {
         await deletePostAsAdmin(deleteTarget);
@@ -2590,6 +2618,7 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error("Error al eliminar:", err);
+      void refreshPosts();
     }
     setDeleteTarget(null);
   };
