@@ -121,7 +121,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 pt-14">
+      <div className="flex-1 flex items-center justify-center px-4 pt-16 pb-12 sm:pb-16">
         <div className="w-full max-w-sm">
           {/* ── Logo & Brand ─────────────────────────── */}
           <motion.div
