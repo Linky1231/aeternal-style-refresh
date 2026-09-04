@@ -22,6 +22,7 @@ import {
   uploadFile,
   generateFilePath,
 } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -1180,7 +1181,6 @@ function CommentItem({
               }`}
             >
               <motion.span
-                key={`${comment.likedByMe}-${comment._id}`}
                 animate={comment.likedByMe ? { scale: [1, 1.25, 1] } : { scale: 1 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
               >
@@ -1399,7 +1399,14 @@ function PostCard({
                   whileTap={{ scale: 0.92 }}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                  onClick={() => isFollowingUser ? onRequestUnfollow(post.authorId, post.authorName) : onFollow(post.authorId)}
+                  onClick={() => {
+                    if (isFollowingUser) {
+                      onRequestUnfollow(post.authorId, post.authorName);
+                    } else {
+                      setIsFollowingUser(true);
+                      onFollow(post.authorId);
+                    }
+                  }}
                   className={`ml-auto text-[11px] font-medium px-2.5 py-0.5 rounded-md border transition-colors ${
                     isFollowingUser
                       ? "border-border/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive hover:bg-destructive/5"
@@ -1480,7 +1487,6 @@ function PostCard({
             }`}
           >
             <motion.span
-              key={`${post.likedByMe}-${post._id}`}
               animate={post.likedByMe ? { scale: [1, 1.3, 1] } : { scale: 1 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="flex items-center"
@@ -2206,22 +2212,65 @@ export default function Dashboard() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   
-  // Fetch posts when activeTab changes
+  // Silent refresh: no spinner, so the feed never flashes.
+  const refreshPosts = useCallback(async () => {
+    if (!user?._id) return;
+    try {
+      const data = await getPosts(activeTab, user._id);
+      setPosts(data);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  }, [activeTab, user?._id]);
+
+  // First load (with skeleton) whenever the tab or user changes
   useEffect(() => {
+    let cancelled = false;
     const fetchPosts = async () => {
       if (!user?._id) return;
       setLoadingPosts(true);
       try {
         const data = await getPosts(activeTab, user._id);
-        setPosts(data);
+        if (!cancelled) setPosts(data);
       } catch (error) {
         console.error("Error fetching posts:", error);
       } finally {
-        setLoadingPosts(false);
+        if (!cancelled) setLoadingPosts(false);
       }
     };
     fetchPosts();
+    return () => {
+      cancelled = true;
+    };
   }, [activeTab, user?._id]);
+
+  // Near-instant sync: realtime changes + refresh on focus/visibility.
+  useEffect(() => {
+    if (!user?._id) return;
+    const channel = supabase
+      .channel("feed-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => {
+        void refreshPosts();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "likes" }, () => {
+        void refreshPosts();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, () => {
+        void refreshPosts();
+      })
+      .subscribe();
+
+    const onFocus = () => {
+      if (document.visibilityState === "visible") void refreshPosts();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, [user?._id, refreshPosts]);
 
   const [content, setContent] = useState("");
   const [postTitle, setPostTitle] = useState("");
@@ -2505,6 +2554,7 @@ export default function Dashboard() {
       setContent("");
       setPostTitle("");
       if (editorRef.current) editorRef.current.innerHTML = "";
+      await refreshPosts();
     } catch (err) {
       console.error("Error al crear la publicación:", err);
     } finally {
@@ -2514,10 +2564,23 @@ export default function Dashboard() {
   };
 
   const handleToggleLike = async (postId: string) => {
+    // Optimista: el corazón y el contador cambian al instante.
+    setPosts((prev) =>
+      prev.map((p) =>
+        p._id === postId
+          ? {
+              ...p,
+              likedByMe: !p.likedByMe,
+              likes: Math.max(0, (p.likes ?? 0) + (p.likedByMe ? -1 : 1)),
+            }
+          : p,
+      ),
+    );
     try {
       await togglePostLike(user?._id || "", postId);
     } catch (err) {
       console.error("Error al dar me gusta:", err);
+      void refreshPosts();
     }
   };
   const handleToggleFollow = useCallback(async (targetUserId: string) => {
@@ -2530,14 +2593,28 @@ export default function Dashboard() {
   }, [user?._id]);
 
   const handleToggleFavorite = async (postId: string) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p._id === postId
+          ? {
+              ...p,
+              favoritedByMe: !p.favoritedByMe,
+              favorites: Math.max(0, (p.favorites ?? 0) + (p.favoritedByMe ? -1 : 1)),
+            }
+          : p,
+      ),
+    );
     try {
       await togglePostFavorite(user?._id || "", postId);
     } catch (err) {
       console.error("Error al marcar favorito:", err);
+      void refreshPosts();
     }
   };
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
+    const removedId = deleteTarget;
+    setPosts((prev) => prev.filter((p) => p._id !== removedId));
     try {
       if (isAdmin) {
         await deletePostAsAdmin(deleteTarget);
@@ -2546,6 +2623,7 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error("Error al eliminar:", err);
+      void refreshPosts();
     }
     setDeleteTarget(null);
   };
