@@ -287,7 +287,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
                 onChange={(e) => setEditName(e.target.value)}
                 maxLength={40}
                 placeholder="Tu nombre"
-                className="flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-card-foreground text-center outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+                className="flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-card-foreground text-center outline-none focus:border-primary/70"
               />
               <button
                 type="button"
@@ -315,7 +315,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
                 onChange={(e) => setEditTitle(e.target.value)}
                 maxLength={60}
                 placeholder="Título (opcional)"
-                className="flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-card-foreground text-center outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+                className="flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-card-foreground text-center outline-none focus:border-primary/70"
               />
               <button
                 type="button"
@@ -409,7 +409,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
                 maxLength={200}
                 rows={4}
                 placeholder="Escribe algo sobre ti…"
-                className="w-full min-h-[100px] resize-none rounded-xl border border-border/60 bg-background px-4 py-3 text-sm text-card-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+                className="w-full min-h-[100px] resize-none rounded-xl border border-border/60 bg-background px-4 py-3 text-sm text-card-foreground outline-none focus:border-primary/70"
               />
               <div className="mt-2 flex items-center justify-between">
                 <span className="text-[11px] text-muted-foreground tabular-nums">{editBio.length}/200</span>
