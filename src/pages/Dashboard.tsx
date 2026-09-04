@@ -22,6 +22,7 @@ import {
   uploadFile,
   generateFilePath,
 } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
