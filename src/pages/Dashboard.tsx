@@ -2206,22 +2206,65 @@ export default function Dashboard() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   
-  // Fetch posts when activeTab changes
+  // Silent refresh: no spinner, so the feed never flashes.
+  const refreshPosts = useCallback(async () => {
+    if (!user?._id) return;
+    try {
+      const data = await getPosts(activeTab, user._id);
+      setPosts(data);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  }, [activeTab, user?._id]);
+
+  // First load (with skeleton) whenever the tab or user changes
   useEffect(() => {
+    let cancelled = false;
     const fetchPosts = async () => {
       if (!user?._id) return;
       setLoadingPosts(true);
       try {
         const data = await getPosts(activeTab, user._id);
-        setPosts(data);
+        if (!cancelled) setPosts(data);
       } catch (error) {
         console.error("Error fetching posts:", error);
       } finally {
-        setLoadingPosts(false);
+        if (!cancelled) setLoadingPosts(false);
       }
     };
     fetchPosts();
+    return () => {
+      cancelled = true;
+    };
   }, [activeTab, user?._id]);
+
+  // Near-instant sync: realtime changes + refresh on focus/visibility.
+  useEffect(() => {
+    if (!user?._id) return;
+    const channel = supabase
+      .channel("feed-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => {
+        void refreshPosts();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "likes" }, () => {
+        void refreshPosts();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, () => {
+        void refreshPosts();
+      })
+      .subscribe();
+
+    const onFocus = () => {
+      if (document.visibilityState === "visible") void refreshPosts();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, [user?._id, refreshPosts]);
 
   const [content, setContent] = useState("");
   const [postTitle, setPostTitle] = useState("");
