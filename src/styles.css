@@ -424,3 +424,33 @@ button:not([data-framer-motion]):active {
   background: color-mix(in srgb, var(--muted-foreground) 50%, transparent);
   background-clip: content-box;
 }
+
+/* ── Animaciones suaves (sin parpadeos ni cortes) ─────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-framer-motion],
+.post-card-hover,
+button,
+a {
+  backface-visibility: hidden;
+}
+
+button,
+a,
+[role="button"] {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  transition-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
