@@ -1181,7 +1181,6 @@ function CommentItem({
               }`}
             >
               <motion.span
-                key={`${comment.likedByMe}-${comment._id}`}
                 animate={comment.likedByMe ? { scale: [1, 1.25, 1] } : { scale: 1 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
               >
@@ -1400,7 +1399,14 @@ function PostCard({
                   whileTap={{ scale: 0.92 }}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                  onClick={() => isFollowingUser ? onRequestUnfollow(post.authorId, post.authorName) : onFollow(post.authorId)}
+                  onClick={() => {
+                    if (isFollowingUser) {
+                      onRequestUnfollow(post.authorId, post.authorName);
+                    } else {
+                      setIsFollowingUser(true);
+                      onFollow(post.authorId);
+                    }
+                  }}
                   className={`ml-auto text-[11px] font-medium px-2.5 py-0.5 rounded-md border transition-colors ${
                     isFollowingUser
                       ? "border-border/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive hover:bg-destructive/5"
@@ -1481,7 +1487,6 @@ function PostCard({
             }`}
           >
             <motion.span
-              key={`${post.likedByMe}-${post._id}`}
               animate={post.likedByMe ? { scale: [1, 1.3, 1] } : { scale: 1 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="flex items-center"
