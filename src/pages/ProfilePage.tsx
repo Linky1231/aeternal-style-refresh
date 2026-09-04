@@ -114,6 +114,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
     setSavingName(true);
     try {
       await updateProfile(user?._id || '', { name: editName.trim() });
+      setCurrentUser((prev: any) => (prev ? { ...prev, name: editName.trim() } : prev));
       setSavedName(true);
       setTimeout(() => setSavedName(false), 2000);
     } catch (err) {
@@ -129,6 +130,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
     setSavingTitle(true);
     try {
       await updateProfile(user?._id || '', { title: editTitle.trim() || undefined });
+      setCurrentUser((prev: any) => (prev ? { ...prev, title: editTitle.trim() } : prev));
       setSavedTitle(true);
       setTimeout(() => setSavedTitle(false), 2000);
     } catch (err) {
@@ -144,6 +146,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
     setSavingBio(true);
     try {
       await updateProfile(user?._id || '', { bio: editBio.trim() || undefined });
+      setCurrentUser((prev: any) => (prev ? { ...prev, bio: editBio.trim() } : prev));
       setSavedBio(true);
       setTimeout(() => setSavedBio(false), 2000);
     } catch (err) {
@@ -193,9 +196,9 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
   const [showFollowList, setShowFollowList] = useState<"followers" | "following" | null>(null);
 
   const stagger = (i: number) => ({
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.35, delay: i * 0.06, ease: [0.32, 0.72, 0, 1] as const },
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { duration: 0.25, delay: i * 0.04, ease: [0.32, 0.72, 0, 1] as const },
   });
 
   return (
@@ -287,7 +290,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
                 onChange={(e) => setEditName(e.target.value)}
                 maxLength={40}
                 placeholder="Tu nombre"
-                className="flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-card-foreground text-center outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+                className="flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-card-foreground text-center outline-none focus:border-primary/70"
               />
               <button
                 type="button"
@@ -315,7 +318,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
                 onChange={(e) => setEditTitle(e.target.value)}
                 maxLength={60}
                 placeholder="Título (opcional)"
-                className="flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-card-foreground text-center outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+                className="flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-card-foreground text-center outline-none focus:border-primary/70"
               />
               <button
                 type="button"
@@ -331,7 +334,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
               </button>
             </div>
           ) : (
-            currentTitle && <p className="text-sm font-medium italic text-primary/80">{currentTitle}</p>
+            <p className="min-h-[1.25rem] text-sm font-medium italic text-primary/80">{currentTitle}</p>
           )}
 
           {/* Separator */}
@@ -409,7 +412,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
                 maxLength={200}
                 rows={4}
                 placeholder="Escribe algo sobre ti…"
-                className="w-full min-h-[100px] resize-none rounded-xl border border-border/60 bg-background px-4 py-3 text-sm text-card-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+                className="w-full min-h-[100px] resize-none rounded-xl border border-border/60 bg-background px-4 py-3 text-sm text-card-foreground outline-none focus:border-primary/70"
               />
               <div className="mt-2 flex items-center justify-between">
                 <span className="text-[11px] text-muted-foreground tabular-nums">{editBio.length}/200</span>

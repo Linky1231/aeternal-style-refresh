@@ -304,6 +304,21 @@ html {
   outline-offset: 2px;
 }
 
+/* Campos de texto: un solo contorno fino, nunca doble */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+[contenteditable]:focus,
+[contenteditable]:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border-color: color-mix(in srgb, var(--primary) 60%, var(--border));
+}
+
 img,
 video {
   transition: opacity 0.3s ease;
