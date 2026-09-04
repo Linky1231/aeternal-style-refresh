@@ -114,6 +114,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
     setSavingName(true);
     try {
       await updateProfile(user?._id || '', { name: editName.trim() });
+      setCurrentUser((prev: any) => (prev ? { ...prev, name: editName.trim() } : prev));
       setSavedName(true);
       setTimeout(() => setSavedName(false), 2000);
     } catch (err) {
@@ -129,6 +130,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
     setSavingTitle(true);
     try {
       await updateProfile(user?._id || '', { title: editTitle.trim() || undefined });
+      setCurrentUser((prev: any) => (prev ? { ...prev, title: editTitle.trim() } : prev));
       setSavedTitle(true);
       setTimeout(() => setSavedTitle(false), 2000);
     } catch (err) {
@@ -144,6 +146,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
     setSavingBio(true);
     try {
       await updateProfile(user?._id || '', { bio: editBio.trim() || undefined });
+      setCurrentUser((prev: any) => (prev ? { ...prev, bio: editBio.trim() } : prev));
       setSavedBio(true);
       setTimeout(() => setSavedBio(false), 2000);
     } catch (err) {
@@ -193,9 +196,9 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
   const [showFollowList, setShowFollowList] = useState<"followers" | "following" | null>(null);
 
   const stagger = (i: number) => ({
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.35, delay: i * 0.06, ease: [0.32, 0.72, 0, 1] as const },
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { duration: 0.25, delay: i * 0.04, ease: [0.32, 0.72, 0, 1] as const },
   });
 
   return (
@@ -331,7 +334,7 @@ export default function ProfilePage({ onBack }: ProfilePageProps) {
               </button>
             </div>
           ) : (
-            currentTitle && <p className="text-sm font-medium italic text-primary/80">{currentTitle}</p>
+            <p className="min-h-[1.25rem] text-sm font-medium italic text-primary/80">{currentTitle}</p>
           )}
 
           {/* Separator */}
